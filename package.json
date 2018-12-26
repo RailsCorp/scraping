@@ -15,5 +15,9 @@
   "bugs": {
     "url": "https://github.com/gonzaemon111/life-scraping/issues"
   },
-  "homepage": "https://github.com/gonzaemon111/life-scraping#readme"
+  "homepage": "https://github.com/gonzaemon111/life-scraping#readme",
+  "devDependencies": {
+    "dotenv": "^6.2.0",
+    "puppeteer": "^1.11.0"
+  }
 }
