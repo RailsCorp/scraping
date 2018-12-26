@@ -19,6 +19,7 @@
   "devDependencies": {
     "dotenv": "^6.2.0",
     "fs": "0.0.1-security",
+    "iconv-lite": "^0.4.24",
     "json2csv": "^4.3.2",
     "path": "^0.12.7",
     "puppeteer": "^1.11.0",
