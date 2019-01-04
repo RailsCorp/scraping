@@ -1,0 +1,36 @@
+version: 2.0
+
+references:
+  commands:
+    setup_puppeteer: &setup_puppeteer
+      name: Setup puppeteer
+      command: |
+        chmod +x ./setup_libxcb.sh
+        sh ./setup_libxcb.sh
+        yarn install
+
+jobs:
+  build:
+    docker:
+      - image: circleci/node:8.9.4
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - restore_cache:
+          paths: node_modules
+          key: v1-dependencies-{{ checksum "package.json" }}
+      - run: *setup_puppeteer
+      - save_cache:
+          paths: node_modules
+          key: v1-dependencies-{{ checksum "package.json" }}
+      - run: node index.js
+      - run: tar -zcvf course_data.tar.gz ./data
+      - store_artifacts:
+          path: ~/repo/course_data.tar.gz
+          when: always
+
+workflows:
+  version: 2
+  scraiping:
+    jobs:
+      - build

@@ -2,7 +2,7 @@
   "name": "life-scraping",
   "version": "1.0.0",
   "description": "none",
-  "main": "main.js",
+  "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -16,13 +16,8 @@
     "url": "https://github.com/gonzaemon111/life-scraping/issues"
   },
   "homepage": "https://github.com/gonzaemon111/life-scraping#readme",
-  "devDependencies": {
-    "dotenv": "^6.2.0",
-    "fs": "0.0.1-security",
-    "iconv-lite": "^0.4.24",
-    "json2csv": "^4.3.2",
-    "path": "^0.12.7",
+  "dependencies": {
     "puppeteer": "^1.11.0",
-    "url": "^0.11.0"
+    "winston": "^3.1.0"
   }
 }
