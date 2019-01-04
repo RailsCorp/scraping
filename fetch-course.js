@@ -9,7 +9,6 @@ exports.fetchCourseData = async (faculty) => {
   const config = process.env.CI ? PUPPETEER_CONFIG.ci : PUPPETEER_CONFIG.local
   const browser = await puppeteer.launch(config)
   const page = await browser.newPage()
-  const jsonFilePath = `./data/course_${faculty.slug}.json`
 
   // MyWasedaログイン
   await page.goto(PAGE_URL.mywaseda)
@@ -41,13 +40,13 @@ exports.fetchCourseData = async (faculty) => {
   logger.info('学部絞り込みでシラバスを検索しました')
 
   await page.waitForFunction(() => window.document.readyState === 'interactive' || window.document.readyState === 'complete')
-  await page.evaluate(() => func_showchg('JAA103SubCon', '50'))
+  await page.evaluate(() => func_showchg('JAA103SubCon', '100'))
 
   let pageNo = 1, courseCount = 0
   while(true) {
     await page.waitForFunction(() => window.document.readyState === 'interactive' || window.document.readyState === 'complete')
 
-    // 1セット(50件)分の講義IDを取得
+    // 1セット(100件)分の講義IDを取得
     const pKeys = await page.evaluate(() => {
       const table = document.querySelector('.ct-vh > tbody')
       const anchorList = table.querySelectorAll('td > a')
@@ -137,21 +136,11 @@ exports.fetchCourseData = async (faculty) => {
     }
 
     await detailTab.close()
-    let json, nextBtn = await page.$('#cHonbun > .l-btn-c > table > tbody > tr > td:last-child a')
+    let nextBtn = await page.$('#cHonbun > .l-btn-c > table > tbody > tr > td:last-child a')
+    const jsonFilePath = `./data/${faculty.slug}_${pageNo}.json`
 
-    // JSON文字列を適宜置換
-    if(!nextBtn && pageNo === 1) {
-      json = JSON.stringify(dataset)
-    } else if(nextBtn && pageNo === 1) {
-      json = JSON.stringify(dataset).replace(/\]$/,',')
-    } else if(!nextBtn) {
-      json = JSON.stringify(dataset).replace(/^\[/, '')
-    } else {
-      json = JSON.stringify(dataset).replace(/^\[/, '').replace(/\]$/,',')
-    }
-
-    // メモリリークするため1ループずつファイルに書き出し(50件ずつ)
-    fs.appendFile(jsonFilePath, json, error => {
+    // メモリリークするため1ループずつファイルに書き出し(100件ずつ)
+    fs.appendFile(jsonFilePath, JSON.stringify(dataset), error => {
       if (error) logger.error(error.message)
     })
 
