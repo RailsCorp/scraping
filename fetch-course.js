@@ -99,34 +99,36 @@ exports.fetchCourseData = async (faculty) => {
 
         // 詳細データ取得
         const detailTable = document.querySelectorAll('.ctable-main')[1]
-        detailTable.querySelectorAll(':scope > .ct-sirabasu > tbody > tr > th').forEach(node => {
-          keys.push(dict.find(item => item.jp === node.innerText).en)
-        })
-        detailTable.querySelectorAll(":scope > .ct-sirabasu > tbody > tr > td").forEach(node => {
-          data[keys[i++]] = node.innerText
-            .replace(/[Ａ-Ｚａ-ｚ０-９]/g, s => String.fromCharCode(s.charCodeAt(0) - 65248))
-            .replace(/^\s+/g, '')
-            .replace(/\s+$/g, '')
-        })
+        detailTable.querySelectorAll(':scope > .ct-sirabasu > tbody > tr').forEach(tr => {
+          if(!tr.querySelector(':scope > th')) return
+          const itemName = tr.querySelector(':scope > th').innerText
+          const item = dict.find(item => item.jp === itemName)
+          if(!item) return
 
-        // 成績評価方法データ取得
-        const tableNum = detailTable.querySelectorAll('table[summary="table"]').length
-        if(tableNum >= 2) {
-          let gradeEvaluateMethods = []
-          detailTable.querySelectorAll('table[summary="table"]')[tableNum - 1].querySelectorAll('tr:not(.c-vh-title)').forEach(node => {
-            const keys = ['name', 'rate', 'detail']
-            let method = {}
-            node.querySelectorAll('td').forEach((value, index) => {
-              method[keys[index]] = value.innerText
-                .replace(/[Ａ-Ｚａ-ｚ０-９]/g, s => String.fromCharCode(s.charCodeAt(0) - 65248))
-                .replace(/^\s+/g, '')
-                .replace(/\s+$/g, '')
-                .replace(/:$/, '')
+          let itemDetail
+          if(item.en === 'evaluation_method') {
+            let gradeEvaluateMethods = []
+            tr.querySelectorAll(':scope > td > table tr:not(.c-vh-title)').forEach(node => {
+              const keys = ['name', 'rate', 'detail']
+              let method = {}
+              node.querySelectorAll('td').forEach((value, index) => {
+                method[keys[index]] = value.innerText
+                  .replace(/[Ａ-Ｚａ-ｚ０-９]/g, s => String.fromCharCode(s.charCodeAt(0) - 65248))
+                  .replace(/^\s+/g, '')
+                  .replace(/\s+$/g, '')
+                  .replace(/:$/, '')
+              })
+              gradeEvaluateMethods.push(method)
             })
-            gradeEvaluateMethods.push(method)
-          })
-          data.evaluation_method = gradeEvaluateMethods
-        }
+            itemDetail = gradeEvaluateMethods
+          } else {
+            itemDetail = tr.querySelector(':scope > td').innerText
+              .replace(/[Ａ-Ｚａ-ｚ０-９]/g, s => String.fromCharCode(s.charCodeAt(0) - 65248))
+              .replace(/^\s+/g, '')
+              .replace(/\s+$/g, '')
+          }
+          data[item.en] = itemDetail
+        })
         return data
       }, COURSE_ITEM_DICTIONARY)
 
