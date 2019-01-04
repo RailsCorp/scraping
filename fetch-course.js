@@ -2,6 +2,7 @@ const fs = require('fs')
 const puppeteer = require('puppeteer')
 const { PAGE_URL, PUPPETEER_CONFIG, COURSE_ITEM_DICTIONARY } = require('./constants')
 const { logger } = require('./util/winston')
+const { URL } = require('url')
 const timeout = 15000
 
 exports.fetchCourseData = async (faculty) => {
