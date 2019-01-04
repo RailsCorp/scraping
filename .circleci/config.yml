@@ -24,9 +24,13 @@ jobs:
           paths: node_modules
           key: v1-dependencies-{{ checksum "package.json" }}
       - run: node index.js
-      - run: tar -zcvf course_data.tar.gz ./data
+      - run:
+          name: compress the output data
+          command: tar -zcvf course_data.tar.gz ./data
+          when: always
       - store_artifacts:
           path: ~/repo/course_data.tar.gz
+          when: always
 
 workflows:
   version: 2

@@ -37,16 +37,17 @@ exports.fetchCourseData = async (faculty) => {
     document.querySelector('select[name="p_gakubu"]').value = code;
     func_search('JAA103SubCon');
   }, faculty.id)
+  await page.waitForFunction(() => window.document.readyState === 'interactive' || window.document.readyState === 'complete')
   logger.info('学部絞り込みでシラバスを検索しました')
 
-  await page.waitForFunction(() => window.document.readyState === 'interactive' || window.document.readyState === 'complete')
-  await page.evaluate(() => func_showchg('JAA103SubCon', '100'))
-
+  // 1セット=400件
+  await page.evaluate(() => func_showchg('JAA103SubCon', '400'))
   let pageNo = 1, courseCount = 0
+
   while(true) {
     await page.waitForFunction(() => window.document.readyState === 'interactive' || window.document.readyState === 'complete')
 
-    // 1セット(100件)分の講義IDを取得
+    // 1セット分の講義IDを取得
     const pKeys = await page.evaluate(() => {
       const table = document.querySelector('.ct-vh > tbody')
       const anchorList = table.querySelectorAll('td > a')
@@ -139,7 +140,7 @@ exports.fetchCourseData = async (faculty) => {
     let nextBtn = await page.$('#cHonbun > .l-btn-c > table > tbody > tr > td:last-child a')
     const jsonFilePath = `./data/${faculty.slug}_${pageNo}.json`
 
-    // メモリリークするため1ループずつファイルに書き出し(100件ずつ)
+    // メモリリークするため1セットずつファイルに書き出し
     fs.appendFile(jsonFilePath, JSON.stringify(dataset), error => {
       if (error) logger.error(error.message)
     })

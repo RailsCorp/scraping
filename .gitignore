@@ -2,3 +2,5 @@ node_modules
 .envrc
 .vscode
 .DS_Store
+data/*
+!data/.gitkeep
