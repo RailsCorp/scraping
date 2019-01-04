@@ -43,7 +43,7 @@ exports.fetchCourseData = async (faculty) => {
   await page.waitForFunction(() => window.document.readyState === 'interactive' || window.document.readyState === 'complete')
   await page.evaluate(() => func_showchg('JAA103SubCon', '50'))
 
-  let pageNo = 1
+  let pageNo = 1, courseCount = 0
   while(true) {
     await page.waitForFunction(() => window.document.readyState === 'interactive' || window.document.readyState === 'complete')
 
@@ -99,10 +99,10 @@ exports.fetchCourseData = async (faculty) => {
 
         // 詳細データ取得
         const detailTable = document.querySelectorAll('.ctable-main')[1]
-        detailTable.querySelectorAll('.ct-sirabasu > tbody > tr > th').forEach(node => {
+        detailTable.querySelectorAll(':scope > .ct-sirabasu > tbody > tr > th').forEach(node => {
           keys.push(dict.find(item => item.jp === node.innerText).en)
         })
-        detailTable.querySelectorAll(".ct-sirabasu > tbody > tr > td").forEach(node => {
+        detailTable.querySelectorAll(":scope > .ct-sirabasu > tbody > tr > td").forEach(node => {
           data[keys[i++]] = node.innerText
             .replace(/[Ａ-Ｚａ-ｚ０-９]/g, s => String.fromCharCode(s.charCodeAt(0) - 65248))
             .replace(/^\s+/g, '')
@@ -110,9 +110,10 @@ exports.fetchCourseData = async (faculty) => {
         })
 
         // 成績評価方法データ取得
-        if(detailTable.querySelectorAll('table').length >= 2) {
+        const tableNum = detailTable.querySelectorAll('table[summary="table"]').length
+        if(tableNum >= 2) {
           let gradeEvaluateMethods = []
-          detailTable.querySelectorAll('table')[1].querySelectorAll('tr:not(.c-vh-title)').forEach(node => {
+          detailTable.querySelectorAll('table[summary="table"]')[tableNum - 1].querySelectorAll('tr:not(.c-vh-title)').forEach(node => {
             const keys = ['name', 'rate', 'detail']
             let method = {}
             node.querySelectorAll('td').forEach((value, index) => {
@@ -129,7 +130,7 @@ exports.fetchCourseData = async (faculty) => {
         return data
       }, COURSE_ITEM_DICTIONARY)
 
-      logger.info(classData.name)
+      logger.info(`${++courseCount}. ${classData.name} ${detailURL.href}`)
       dataset.push(classData)
     }
 
@@ -161,5 +162,3 @@ exports.fetchCourseData = async (faculty) => {
 
   await browser.close();
 }
-
-

@@ -18,8 +18,8 @@ const TARGET = process.env.FETCH_TARGET || 'all';
     try {
       await fetchCourseData(faculty)
     } catch(e) {
-      console.log(e)
       logger.error(e.message)
+      process.exit(1)
     }
   }
 })()

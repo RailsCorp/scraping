@@ -27,7 +27,6 @@ jobs:
       - run: tar -zcvf course_data.tar.gz ./data
       - store_artifacts:
           path: ~/repo/course_data.tar.gz
-          when: always
 
 workflows:
   version: 2
