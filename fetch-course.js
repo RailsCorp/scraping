@@ -40,9 +40,9 @@ exports.fetchCourseData = async (faculty) => {
   await page.waitForFunction(() => window.document.readyState === 'interactive' || window.document.readyState === 'complete')
   logger.info('学部絞り込みでシラバスを検索しました')
 
-  // 1セット=400件
-  await page.evaluate(() => func_showchg('JAA103SubCon', '400'))
+  // 1セット=200件
   let pageNo = 1, courseCount = 0
+  await page.evaluate(() => func_showchg('JAA103SubCon', '200'))
 
   while(true) {
     await page.waitForFunction(() => window.document.readyState === 'interactive' || window.document.readyState === 'complete')
@@ -91,11 +91,83 @@ exports.fetchCourseData = async (faculty) => {
           // オープン科目判定(thが空文字のため個別対応)
           if(text.startsWith("オープン科目")) {
             data.open_course = true
+          } else if(text.startsWith("フルオンデマンド")) {
+            data.full_od = true
           } else {
             data[keys[i++]] = text
           }
         })
         if(!data.open_course) data.open_course = false
+        if(!data.full_od) data.full_od = false
+
+        // 不要データ削除
+        delete data["key"]
+        delete data["class_code"]
+        delete data["course_code"]
+
+        // 型・フォーマットを適切なものに変換
+        const target_keys = ['year', 'target_grade', 'credit']
+        const days = ['日', '月', '火', '水', '木', '金', '土']
+        // const term_dict = ['春学期', '秋学期', '夏クォーター', '秋クォーター','冬クォーター']
+        for(let key in data) {
+          if(target_keys.includes(key)) {
+            data[key] = parseInt(data[key])
+          } else if(key === 'time') {
+            let timedata = data.time.split("  ")
+            let classrooms = data.classroom.split("／")
+            let termdata = timedata[0].split("／")
+            data.term = termdata[0]
+            data.metadata = []
+            // 通年だが学期ごとでコマ数が違うパターン(ex: 線形)
+            if(termdata.length > 1) {
+              let periods = timedata[1].split("／")
+              let annual_dpcs = []
+              if(/(.)(\d)時限/.test(periods[0])) {
+                res = periods[0].match(/(.)(\d)時限/)
+                annual_dpcs.push({ day: days.indexOf(res[1]), period: parseInt(res[2]), classroom: classrooms[0].replace(/.+:/, '') })
+              } else if(/(.)(\d)-(\d)/.test(periods[0])) {
+                res = periods[0].match(/(.)(\d)-(\d)/)
+                for(let j = parseInt(res[2]); j <= parseInt(res[3]); j++) {
+                  annual_dpcs.push({ day: days.indexOf(res[1]), period: j, classroom: classrooms[0] })
+                }
+              }
+              let tmp = annual_dpcs.concat()
+              if(/(.)(\d)時限/.test(periods[0])) {
+                res = periods[1].match(/(.)(\d)時限/)
+                tmp.push({ day: days.indexOf(res[1]), period: parseInt(res[2]), classroom: classrooms[1].replace(/.+:/, '') })
+              } else if(/(.)(\d)-(\d)/.test(periods[0])) {
+                res = periods[1].match(/(.)(\d)-(\d)/)
+                for(let j = parseInt(res[2]); j <= parseInt(res[3]); j++) {
+                  tmp.push({ day: days.indexOf(res[1]), period: j, classroom: classrooms[0]})
+                }
+              }
+              if(termdata[1] === '春学期') {
+                data.metadata.push(tmp)
+                data.metadata.push(annual_dpcs)
+              }
+              else if(termdata[1] === '秋学期') {
+                data.metadata.push(annual_dpcs)
+                data.metadata.push(tmp)
+              }
+            } else {
+              let periods = timedata[1].split("／")
+              let dpcs = []
+              periods.forEach((v, i) => {
+                if(/(.)(\d)時限/.test(v)) {
+                  res = v.match(/(.)(\d)時限/)
+                  dpcs.push({ day: days.indexOf(res[1]), period: parseInt(res[2]), classroom: classrooms[i].replace(/.+:/, '') })
+                } else if(/(.)(\d)-(\d)/.test(v)) {
+                  res = v.match(/(.)(\d)-(\d)/)
+                  for(let j = parseInt(res[2]); j <= parseInt(res[3]); j++) {
+                    dpcs.push({ day: days.indexOf(res[1]), period: j, classroom: classrooms[0] })
+                  }
+                }
+              })
+              data.metadata.push(dpcs)
+              if(termdata[0] === '通年') data.metadata.push(dpcs)
+            }
+          }
+        }
 
         // 詳細データ取得
         const detailTable = document.querySelectorAll('.ctable-main')[1]

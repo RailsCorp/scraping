@@ -47,14 +47,8 @@ const COURSE_ITEM_DICTIONARY = [
   { en: "level", jp: "レベル" },
   { en: "form", jp: "授業形態" },
   { en: "subtitle", jp: "副題" },
-  { en: "overview", jp: "授業概要" },
-  { en: "goal", jp: "授業の到達目標" },
-  { en: "plan", jp: "授業計画" },
   { en: "textbook", jp: "教科書" },
-  { en: "reference", jp: "参考文献" },
-  { en: "evaluation_method", jp: "成績評価方法" },
-  { en: "remarks", jp: "備考・関連URL" },
-  { en: "self_study", jp: "事前・事後学習の内容" }
+  { en: "evaluation_method", jp: "成績評価方法" }
 ]
 
 module.exports = { PAGE_URL, FACULTIES, PUPPETEER_CONFIG, COURSE_ITEM_DICTIONARY }
